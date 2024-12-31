@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -13,38 +14,42 @@ public static partial class Scope
 {
     private static void UpdateParent(this DependencyObject source, IEnumerable<ValidationError> removed, IEnumerable<ValidationError> added)
     {
-        if (VisualTreeHelper.GetParent(source) is UIElement parent &&
-            GetForInputTypes(parent) is { })
+        UIElement? parent = null;
+        if (source is DataGridRow row)
         {
-            if (GetNode(source) is ErrorNode childNode)
-            {
-                if (IsScopeFor(parent, source))
-                {
+            parent = GetDataGrid(row);
+        }
+        else
+        {
+            parent = VisualTreeHelper.GetParent(source) as UIElement;
+        }
+
+        if (parent == null || GetForInputTypes(parent) == null)
+        {
+            return;
+        }
+
 #pragma warning disable IDISP001, CA2000 // Dispose created. Disposed in SetNode.
-                    var parentNode = GetNode(parent) is ErrorNode errorNode
-                        ? errorNode
-                        : new ScopeNode(parent);
+        var parentNode = GetNode(parent) as ErrorNode ?? new ScopeNode(parent);
 #pragma warning restore IDISP001, CA2000 // Dispose created.
 
-                    _ = parentNode.ChildCollection.TryAdd(childNode);
-                    parentNode.ErrorCollection.Remove(removed);
-                    parentNode.ErrorCollection.Add(added.Where(e => parent.IsScopeFor(e)).AsReadOnly());
-                    SetNode(parent, parentNode);
-                }
-                else if (GetNode(parent) is ErrorNode parentNode)
-                {
-                    _ = parentNode.ChildCollection.Remove(childNode);
-                    parentNode.ErrorCollection.Remove(removed);
-                    parentNode.ErrorCollection.Remove(childNode.Errors);
-                    if (parentNode is ScopeNode { Errors.Count: 0 })
-                    {
-                        SetNode(parent, ValidNode.Default);
-                    }
-                }
-            }
-            else
+        if (GetNode(source) is ErrorNode childNode)
+        {
+            _ = parentNode.ChildCollection.TryAdd(childNode);
+        }
+
+        parentNode.ErrorCollection.Remove(removed);
+        parentNode.ErrorCollection.Add(added.Where(e => parent.IsScopeFor(e)).AsReadOnly());
+
+        if (parentNode is ScopeNode { Errors.Count: 0 })
+        {
+            SetNode(parent, ValidNode.Default);
+        }
+        else
+        {
+            if (!ReferenceEquals(GetNode(parent), parentNode))
             {
-                SetNode(parent, ValidNode.Default);
+                SetNode(parent, parentNode);
             }
         }
     }
@@ -112,5 +117,16 @@ public static partial class Scope
             { BindingInError: BindingExpressionBase bindingExpression } => bindingExpression.Target,
             _ => throw new ArgumentOutOfRangeException(nameof(error), error, $"ValidationError.BindingInError == {error.BindingInError}"),
         };
+    }
+
+    private static DataGrid? GetDataGrid(DataGridRow row)
+    {
+        var propertyInfo = typeof(DataGridRow).GetProperty("DataGridOwner", BindingFlags.NonPublic | BindingFlags.Instance);
+        if (propertyInfo == null)
+        {
+            return null;
+        }
+
+        return propertyInfo.GetValue(row) as DataGrid;
     }
 }
