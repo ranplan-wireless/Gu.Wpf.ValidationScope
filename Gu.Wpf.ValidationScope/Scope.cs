@@ -205,7 +205,7 @@ public static partial class Scope
         {
             inputTypes ??= GetForInputTypes(element);
 
-            if (element is { IsVisible: true } &&
+            if (element is { Visibility: Visibility.Visible } &&
                 inputTypes is { })
             {
                 if (inputTypes.Contains(element))
