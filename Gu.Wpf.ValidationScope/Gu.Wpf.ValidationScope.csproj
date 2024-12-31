@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>library</OutputType>
     <TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
@@ -26,7 +26,7 @@
   <PropertyGroup>
     <Description>Form validation for WPF</Description>
     <Authors>Johan Larsson</Authors>
-    <Version>0.2.4</Version>
+    <Version>0.2.4.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/GuOrg/Gu.Wpf.ValidationScope</PackageProjectUrl>
     <RepositoryUrl>https://github.com/GuOrg/Gu.Wpf.ValidationScope</RepositoryUrl>
@@ -45,6 +45,7 @@
     </PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>RanplanWireless.Wpf.ValidationScope</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
